@@ -1,0 +1,4118 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width,
+             initial-scale=1.0,
+             maximum-scale=1.0,
+             user-scalable=no"
+>
+
+<title>Древние Руины</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #2d4a22;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    touch-action: none;
+}
+
+canvas {
+    position: fixed;
+    inset: 0;
+    display: block;
+}
+
+#ui {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+}
+
+#topPanel {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    right: 18px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.panel {
+    padding: 12px 18px;
+
+    border: 1px solid
+        rgba(255,255,255,.18);
+
+    border-radius: 12px;
+
+    background:
+        rgba(10,15,8,.58);
+
+    backdrop-filter: blur(10px);
+
+    color: white;
+
+    text-shadow:
+        0 2px 5px black;
+}
+
+#gameTitle {
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+#stats {
+    display: flex;
+    gap: 18px;
+}
+
+#coinText {
+    color: #ffd447;
+}
+
+#distanceText {
+    color: #d6bd87;
+}
+
+#speedText {
+    color: #9cff9c;
+}
+
+.screen {
+    position: fixed;
+    inset: 0;
+
+    z-index: 50;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(75,100,50,.25),
+            rgba(0,0,0,.78)
+        );
+}
+
+.screenBox {
+    width: min(
+        650px,
+        calc(100% - 40px)
+    );
+
+    padding: 38px;
+
+    text-align: center;
+
+    border-radius: 20px;
+
+    background:
+        rgba(12,17,9,.88);
+
+    border:
+        1px solid
+        rgba(255,255,255,.18);
+
+    box-shadow:
+        0 30px 80px
+        rgba(0,0,0,.55);
+}
+
+.screenBox h1 {
+    font-size:
+        clamp(32px,7vw,68px);
+
+    letter-spacing: 5px;
+
+    color: #e4c477;
+
+    margin-bottom: 15px;
+}
+
+.screenBox h2 {
+    font-size: 30px;
+    color: #e4c477;
+    margin-bottom: 15px;
+}
+
+.screenBox p {
+    color: #ccc;
+    line-height: 1.65;
+    margin: 9px 0;
+}
+
+.button {
+    margin-top: 22px;
+
+    padding:
+        13px 32px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #b57b2e;
+
+    color: white;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    pointer-events: auto;
+}
+
+.button:hover {
+    background: #d49a3c;
+}
+
+#pauseScreen,
+#gameOverScreen {
+    display: none;
+}
+
+#mobileControls {
+    position: fixed;
+
+    left: 0;
+    right: 0;
+    bottom: 20px;
+
+    z-index: 30;
+
+    display: none;
+
+    justify-content:
+        space-between;
+
+    padding:
+        0 20px;
+
+    pointer-events: none;
+}
+
+.mobileGroup {
+    display: flex;
+    gap: 12px;
+}
+
+.mobileButton {
+    width: 64px;
+    height: 64px;
+
+    border-radius: 50%;
+
+    border:
+        1px solid
+        rgba(255,255,255,.25);
+
+    background:
+        rgba(15,20,10,.65);
+
+    color: white;
+
+    font-size: 25px;
+
+    pointer-events: auto;
+}
+
+#damageFlash {
+    position: fixed;
+    inset: 0;
+
+    z-index: 40;
+
+    pointer-events: none;
+
+    background:
+        rgba(255,40,20,.55);
+
+    opacity: 0;
+}
+
+@media(max-width:800px) {
+
+    #mobileControls {
+        display: flex;
+    }
+
+    #gameTitle {
+        display: none;
+    }
+
+    #stats {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .screenBox {
+        padding: 25px;
+    }
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     UI
+========================================================= -->
+
+<div id="ui">
+
+    <div id="topPanel">
+
+        <div
+            id="gameTitle"
+            class="panel"
+        >
+            ДРЕВНИЕ РУИНЫ
+        </div>
+
+        <div
+            id="stats"
+            class="panel"
+        >
+
+            <span id="coinText">
+                🪙 0
+            </span>
+
+            <span id="distanceText">
+                📏 0 м
+            </span>
+
+            <span id="speedText">
+                ⚡ 1.0
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     START SCREEN
+========================================================= -->
+
+<div
+    id="startScreen"
+    class="screen"
+>
+
+    <div class="screenBox">
+
+        <h1>
+            ДРЕВНИЕ<br>
+            РУИНЫ
+        </h1>
+
+        <p>
+            Беги через древние джунгли,
+            собирай золотые артефакты
+            и избегай разрушенных сооружений.
+        </p>
+
+        <p>
+            <b>A / D</b> или
+            <b>← / →</b>
+            — движение
+        </p>
+
+        <p>
+            <b>SPACE</b>
+            — прыжок
+        </p>
+
+        <p>
+            <b>ESC</b>
+            — пауза
+        </p>
+
+        <button
+            id="startButton"
+            class="button"
+        >
+            НАЧАТЬ
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PAUSE
+========================================================= -->
+
+<div
+    id="pauseScreen"
+    class="screen"
+>
+
+    <div class="screenBox">
+
+        <h2>
+            ПАУЗА
+        </h2>
+
+        <p>
+            Древние руины ждут продолжения.
+        </p>
+
+        <button
+            id="resumeButton"
+            class="button"
+        >
+            ПРОДОЛЖИТЬ
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     GAME OVER
+========================================================= -->
+
+<div
+    id="gameOverScreen"
+    class="screen"
+>
+
+    <div class="screenBox">
+
+        <h2>
+            ВЫ ПОГИБЛИ
+        </h2>
+
+        <p>
+            Собрано монет:
+            <b id="finalCoins">0</b>
+        </p>
+
+        <p>
+            Пройдено:
+            <b id="finalDistance">0</b> м
+        </p>
+
+        <button
+            id="restartButton"
+            class="button"
+        >
+            ПОПРОБОВАТЬ СНОВА
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     MOBILE
+========================================================= -->
+
+<div id="mobileControls">
+
+    <div class="mobileGroup">
+
+        <button
+            id="leftButton"
+            class="mobileButton"
+        >
+            ←
+        </button>
+
+        <button
+            id="rightButton"
+            class="mobileButton"
+        >
+            →
+        </button>
+
+    </div>
+
+    <div class="mobileGroup">
+
+        <button
+            id="jumpButton"
+            class="mobileButton"
+        >
+            ↑
+        </button>
+
+    </div>
+
+</div>
+
+
+<div id="damageFlash"></div>
+
+
+<!-- =========================================================
+     THREE.JS
+========================================================= -->
+
+<script type="importmap">
+
+{
+    "imports": {
+        "three":
+        "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+    }
+}
+
+</script>
+
+
+<script type="module">
+
+import * as THREE from "three";
+
+
+// ============================================================
+// КОНФИГУРАЦИЯ
+// ============================================================
+
+const CONFIG = {
+
+    ROAD_WIDTH: 18,
+
+    LANE_WIDTH: 6,
+
+    CHUNK_LENGTH: 45,
+
+    INITIAL_CHUNKS: 14,
+
+    GENERATION_DISTANCE: 220,
+
+    DELETE_DISTANCE: 90,
+
+    PLAYER_Z: 8,
+
+    PLAYER_HEIGHT: 1.4,
+
+    START_SPEED: 0.42,
+
+    MAX_SPEED: 0.95,
+
+    SPEED_ACCELERATION: 0.000018,
+
+    GRAVITY: -0.055,
+
+    JUMP_POWER: 1.25,
+
+    FOG_NEAR: 70,
+
+    FOG_FAR: 300
+
+};
+
+
+// ============================================================
+// СОСТОЯНИЕ ИГРЫ
+// ============================================================
+
+const game = {
+
+    started: false,
+
+    paused: false,
+
+    dead: false,
+
+    coins: 0,
+
+    distance: 0,
+
+    speed: CONFIG.START_SPEED,
+
+    lane: 1,
+
+    velocityY: 0,
+
+    grounded: true,
+
+    time: 0,
+
+    chunkIndex: 0
+
+};
+
+
+// ============================================================
+// СЦЕНА
+// ============================================================
+
+const scene =
+    new THREE.Scene();
+
+scene.background =
+    new THREE.Color(
+        "#2d4a22"
+    );
+
+scene.fog =
+    new THREE.Fog(
+        new THREE.Color(
+            "#2d4a22"
+        ),
+        CONFIG.FOG_NEAR,
+        CONFIG.FOG_FAR
+    );
+
+
+// ============================================================
+// КАМЕРА
+// ============================================================
+
+const camera =
+    new THREE.PerspectiveCamera(
+        65,
+        window.innerWidth /
+        window.innerHeight,
+        0.1,
+        500
+    );
+
+camera.position.set(
+    0,
+    6.5,
+    18
+);
+
+
+// ============================================================
+// РЕНДЕР
+// ============================================================
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference:
+            "high-performance"
+    });
+
+renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+);
+
+renderer.setPixelRatio(
+    Math.min(
+        window.devicePixelRatio,
+        2
+    )
+);
+
+renderer.shadowMap.enabled =
+    true;
+
+renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+renderer.toneMapping =
+    THREE.ACESFilmicToneMapping;
+
+renderer.toneMappingExposure =
+    1.15;
+
+document.body.appendChild(
+    renderer.domElement
+);
+
+
+// ============================================================
+// ОСВЕЩЕНИЕ
+// ============================================================
+
+const hemisphere =
+    new THREE.HemisphereLight(
+        0xc9ecff,
+        0x243717,
+        2
+    );
+
+scene.add(
+    hemisphere
+);
+
+
+const ambient =
+    new THREE.AmbientLight(
+        0x88aa6d,
+        0.75
+    );
+
+scene.add(
+    ambient
+);
+
+
+const sunlight =
+    new THREE.DirectionalLight(
+        0xffc56b,
+        4.2
+    );
+
+sunlight.position.set(
+    -60,
+    90,
+    35
+);
+
+sunlight.castShadow =
+    true;
+
+sunlight.shadow.mapSize.width =
+    2048;
+
+sunlight.shadow.mapSize.height =
+    2048;
+
+sunlight.shadow.camera.left =
+    -100;
+
+sunlight.shadow.camera.right =
+    100;
+
+sunlight.shadow.camera.top =
+    120;
+
+sunlight.shadow.camera.bottom =
+    -100;
+
+sunlight.shadow.camera.near =
+    1;
+
+sunlight.shadow.camera.far =
+    320;
+
+scene.add(
+    sunlight
+);
+
+
+// ============================================================
+// ГРУППА МИРА
+// ============================================================
+
+const world =
+    new THREE.Group();
+
+scene.add(
+    world
+);
+
+
+// ============================================================
+// МАТЕРИАЛЫ
+// ============================================================
+
+const roadMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xb59b70,
+        roughness: 0.95,
+        metalness: 0.03
+    });
+
+
+const stoneMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x77644c,
+        roughness: 0.9
+    });
+
+
+const stoneDark =
+    new THREE.MeshStandardMaterial({
+        color: 0x51483a,
+        roughness: 0.98
+    });
+
+
+const stoneLight =
+    new THREE.MeshStandardMaterial({
+        color: 0x9b805c,
+        roughness: 0.85
+    });
+
+
+const mossMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x24572a,
+        roughness: 0.8,
+        emissive: 0x123917,
+        emissiveIntensity: 1.8
+    });
+
+
+const vineMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x183d20,
+        roughness: 1
+    });
+
+
+const leafMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x2f6b30,
+        roughness: 0.9
+    });
+
+
+const emeraldMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x35ff99,
+        emissive: 0x00ff70,
+        emissiveIntensity: 5,
+        toneMapped: false
+    });
+
+
+const orangeMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xffa936,
+        emissive: 0xff5b00,
+        emissiveIntensity: 5,
+        toneMapped: false
+    });
+
+
+const goldMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xffc928,
+        metalness: 0.92,
+        roughness: 0.17,
+        emissive: 0x754000,
+        emissiveIntensity: 0.6
+    });
+
+
+const torchMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x542e18,
+        roughness: 0.9
+    });
+
+
+const flameMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0xffad29,
+        emissive: 0xff4b00,
+        emissiveIntensity: 6,
+        toneMapped: false
+    });
+
+
+const chestMaterial =
+    new THREE.MeshStandardMaterial({
+        color: 0x4d301b,
+        roughness: 0.7,
+        metalness: 0.15
+    });
+
+
+// ============================================================
+// УТИЛИТЫ
+// ============================================================
+
+function randomRange(
+    min,
+    max
+) {
+
+    return min +
+        Math.random() *
+        (max - min);
+
+}
+
+
+function randomSign() {
+
+    return Math.random() > 0.5
+        ? 1
+        : -1;
+
+}
+
+
+function randomLane() {
+
+    return Math.floor(
+        Math.random() * 3
+    );
+
+}
+
+
+function laneX(lane) {
+
+    return (
+        lane - 1
+    ) * CONFIG.LANE_WIDTH;
+
+}
+
+
+// ============================================================
+// РУНА
+// ============================================================
+
+function createRune(
+    material
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const vertical =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.08,
+                1,
+                0.08
+            ),
+            material
+        );
+
+    group.add(
+        vertical
+    );
+
+
+    const horizontal =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.55,
+                0.08,
+                0.08
+            ),
+            material
+        );
+
+    horizontal.position.y =
+        0.12;
+
+    group.add(
+        horizontal
+    );
+
+
+    const diagonal =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                0.08,
+                0.55,
+                0.08
+            ),
+            material
+        );
+
+    diagonal.rotation.z =
+        Math.PI / 4;
+
+    diagonal.position.x =
+        0.18;
+
+    diagonal.position.y =
+        -0.2;
+
+    group.add(
+        diagonal
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// КАМЕННАЯ ПЛИТКА
+// ============================================================
+
+function createTile(
+    x,
+    z
+) {
+
+    const tile =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                5.7,
+                0.16,
+                3.5
+            ),
+            roadMaterial
+        );
+
+    tile.position.set(
+        x,
+        0,
+        z
+    );
+
+    tile.rotation.y =
+        randomRange(
+            -0.025,
+            0.025
+        );
+
+    tile.receiveShadow =
+        true;
+
+    tile.castShadow =
+        true;
+
+    return tile;
+
+}
+
+
+// ============================================================
+// МОХОВАЯ ТРЕЩИНА
+// ============================================================
+
+function createCrack(
+    x,
+    z
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const count =
+        2 +
+        Math.floor(
+            Math.random() * 4
+        );
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const piece =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    randomRange(
+                        0.06,
+                        0.16
+                    ),
+                    0.06,
+                    randomRange(
+                        0.7,
+                        2
+                    )
+                ),
+                mossMaterial
+            );
+
+
+        piece.position.set(
+            randomRange(
+                -0.25,
+                0.25
+            ),
+            0.12,
+            i * 0.8
+        );
+
+
+        piece.rotation.y =
+            randomRange(
+                -0.4,
+                0.4
+            );
+
+
+        group.add(
+            piece
+        );
+    }
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// КОЛОННА
+// ============================================================
+
+function createColumn(
+    x,
+    z,
+    scale = 1
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const height =
+        randomRange(
+            4.5,
+            9
+        ) * scale;
+
+
+    const radius =
+        randomRange(
+            0.65,
+            1
+        ) * scale;
+
+
+    const base =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                radius * 2.4,
+                0.55,
+                radius * 2.4
+            ),
+            stoneDark
+        );
+
+
+    base.position.y =
+        0.27;
+
+    base.castShadow =
+        true;
+
+
+    group.add(
+        base
+    );
+
+
+    const column =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                radius,
+                radius * 1.1,
+                height,
+                8
+            ),
+            stoneMaterial
+        );
+
+
+    column.position.y =
+        height / 2;
+
+    column.castShadow =
+        true;
+
+    column.receiveShadow =
+        true;
+
+
+    group.add(
+        column
+    );
+
+
+    const capital =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                radius * 2.5,
+                0.65,
+                radius * 2.5
+            ),
+            stoneLight
+        );
+
+
+    capital.position.y =
+        height + 0.3;
+
+    capital.castShadow =
+        true;
+
+
+    group.add(
+        capital
+    );
+
+
+    if (
+        Math.random() > 0.4
+    ) {
+
+        const rune =
+            createRune(
+                Math.random() > 0.5
+                    ? emeraldMaterial
+                    : orangeMaterial
+            );
+
+
+        rune.position.set(
+            radius + 0.04,
+            height * 0.55,
+            0
+        );
+
+
+        group.add(
+            rune
+        );
+
+    }
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    group.rotation.y =
+        randomRange(
+            0,
+            Math.PI * 2
+        );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// ПИРАМИДА
+// ============================================================
+
+function createPyramid(
+    x,
+    z
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const height =
+        randomRange(
+            5,
+            12
+        );
+
+
+    const size =
+        randomRange(
+            5,
+            9
+        );
+
+
+    const base =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                size * 1.2,
+                0.8,
+                size * 1.2
+            ),
+            stoneDark
+        );
+
+
+    base.position.y =
+        0.4;
+
+    base.castShadow =
+        true;
+
+
+    group.add(
+        base
+    );
+
+
+    const pyramid =
+        new THREE.Mesh(
+            new THREE.ConeGeometry(
+                size,
+                height,
+                4
+            ),
+            stoneMaterial
+        );
+
+
+    pyramid.position.y =
+        height / 2;
+
+
+    pyramid.rotation.y =
+        Math.PI / 4;
+
+
+    pyramid.castShadow =
+        true;
+
+    pyramid.receiveShadow =
+        true;
+
+
+    group.add(
+        pyramid
+    );
+
+
+    const rune =
+        createRune(
+            Math.random() > 0.5
+                ? emeraldMaterial
+                : orangeMaterial
+        );
+
+
+    rune.position.y =
+        height * 0.72;
+
+
+    rune.scale.setScalar(
+        1.4
+    );
+
+
+    group.add(
+        rune
+    );
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// СТАТУЯ
+// ============================================================
+
+function createStatue(
+    x,
+    z
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const pedestal =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                2.5,
+                1,
+                2.5
+            ),
+            stoneDark
+        );
+
+
+    pedestal.position.y =
+        0.5;
+
+
+    pedestal.castShadow =
+        true;
+
+
+    group.add(
+        pedestal
+    );
+
+
+    const body =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                1.1,
+                1.5,
+                3.5,
+                8
+            ),
+            stoneMaterial
+        );
+
+
+    body.position.y =
+        2.75;
+
+
+    body.castShadow =
+        true;
+
+
+    group.add(
+        body
+    );
+
+
+    const head =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                1.25,
+                10,
+                8
+            ),
+            stoneLight
+        );
+
+
+    head.scale.y =
+        1.15;
+
+
+    head.position.y =
+        5.1;
+
+
+    head.castShadow =
+        true;
+
+
+    group.add(
+        head
+    );
+
+
+    const eyeMaterial =
+        Math.random() > 0.5
+            ? emeraldMaterial
+            : orangeMaterial;
+
+
+    for (
+        const offset of [-0.43,0.43]
+    ) {
+
+        const eye =
+            new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    0.18,
+                    0.18,
+                    0.12
+                ),
+                eyeMaterial
+            );
+
+
+        eye.position.set(
+            offset,
+            5.15,
+            1.05
+        );
+
+
+        group.add(
+            eye
+        );
+    }
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// ЛИАНА
+// ============================================================
+
+function createVine(
+    x,
+    height
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const count = 8;
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const piece =
+            new THREE.Mesh(
+                new THREE.CylinderGeometry(
+                    0.035,
+                    0.055,
+                    0.65,
+                    5
+                ),
+                vineMaterial
+            );
+
+
+        piece.position.set(
+            x +
+            Math.sin(i * .8) *
+            .25,
+            height -
+            i * .55,
+            0
+        );
+
+
+        piece.rotation.z =
+            randomRange(
+                -0.3,
+                0.3
+            );
+
+
+        group.add(
+            piece
+        );
+    }
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// РАСТЕНИЯ
+// ============================================================
+
+function createPlants(
+    x,
+    z
+) {
+
+    const group =
+        new THREE.Group();
+
+
+    const amount =
+        4 +
+        Math.floor(
+            Math.random() * 7
+        );
+
+
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
+
+        const leaf =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    randomRange(
+                        .5,
+                        1.3
+                    ),
+                    6,
+                    5
+                ),
+                leafMaterial
+            );
+
+
+        leaf.scale.y =
+            .45;
+
+
+        leaf.position.set(
+            randomRange(
+                -2,
+                2
+            ),
+            randomRange(
+                .5,
+                2.5
+            ),
+            randomRange(
+                -2,
+                2
+            )
+        );
+
+
+        leaf.castShadow =
+            true;
+
+
+        group.add(
+            leaf
+        );
+    }
+
+
+    group.position.set(
+        x,
+        0,
+        z
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// ФАКЕЛ
+// ============================================================
+
+function createTorch() {
+
+    const group =
+        new THREE.Group();
+
+
+    const stick =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .11,
+                .16,
+                2.4,
+                7
+            ),
+            torchMaterial
+        );
+
+
+    stick.position.y =
+        1.2;
+
+
+    stick.castShadow =
+        true;
+
+
+    group.add(
+        stick
+    );
+
+
+    const flame =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .42,
+                8,
+                8
+            ),
+            flameMaterial
+        );
+
+
+    flame.scale.set(
+        .65,
+        1.45,
+        .65
+    );
+
+
+    flame.position.y =
+        2.55;
+
+
+    group.add(
+        flame
+    );
+
+
+    const light =
+        new THREE.PointLight(
+            0xff7520,
+            3.5,
+            13
+        );
+
+
+    light.position.y =
+        2.5;
+
+
+    group.add(
+        light
+    );
+
+
+    return {
+        group,
+        flame,
+        light
+    };
+
+}
+
+
+// ============================================================
+// СУНДУК
+// ============================================================
+
+function createChest() {
+
+    const group =
+        new THREE.Group();
+
+
+    const body =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                2.2,
+                1.4,
+                1.8
+            ),
+            chestMaterial
+        );
+
+
+    body.position.y =
+        .7;
+
+
+    body.castShadow =
+        true;
+
+
+    body.receiveShadow =
+        true;
+
+
+    group.add(
+        body
+    );
+
+
+    const lid =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                2.3,
+                .35,
+                1.9
+            ),
+            stoneDark
+        );
+
+
+    lid.position.y =
+        1.55;
+
+
+    lid.castShadow =
+        true;
+
+
+    group.add(
+        lid
+    );
+
+
+    const lock =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                .35,
+                .4,
+                .1
+            ),
+            goldMaterial
+        );
+
+
+    lock.position.set(
+        0,
+        1.05,
+        .95
+    );
+
+
+    group.add(
+        lock
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// УПАВШАЯ КОЛОННА
+// ============================================================
+
+function createFallenColumn() {
+
+    const group =
+        new THREE.Group();
+
+
+    const column =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .75,
+                .9,
+                randomRange(
+                    3.5,
+                    5
+                ),
+                8
+            ),
+            stoneMaterial
+        );
+
+
+    column.rotation.z =
+        Math.PI / 2;
+
+
+    column.position.y =
+        .75;
+
+
+    column.castShadow =
+        true;
+
+
+    column.receiveShadow =
+        true;
+
+
+    group.add(
+        column
+    );
+
+
+    return group;
+
+}
+
+
+// ============================================================
+// МОНЕТА
+// ============================================================
+
+function createCoin() {
+
+    const coin =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .62,
+                .62,
+                .16,
+                24
+            ),
+            goldMaterial
+        );
+
+
+    coin.rotation.z =
+        Math.PI / 2;
+
+
+    coin.position.y =
+        1.5;
+
+
+    coin.castShadow =
+        true;
+
+
+    coin.userData.type =
+        "coin";
+
+
+    return coin;
+
+}
+
+
+// ============================================================
+// ЧАСТИЦЫ
+// ============================================================
+
+const particles = [];
+
+
+function createExplosion(
+    position
+) {
+
+    const geometry =
+        new THREE.BoxGeometry(
+            .18,
+            .18,
+            .18
+        );
+
+
+    for (
+        let i = 0;
+        i < 55;
+        i++
+    ) {
+
+        const material =
+            new THREE.MeshStandardMaterial({
+                color:
+                    randomChoice([
+                        0xa78b60,
+                        0x8e754f,
+                        0xc0a274,
+                        0x725c3f
+                    ]),
+                roughness: 1
+            });
+
+
+        const particle =
+            new THREE.Mesh(
+                geometry,
+                material
+            );
+
+
+        particle.position.copy(
+            position
+        );
+
+
+        particle.scale.setScalar(
+            randomRange(
+                .5,
+                1.7
+            )
+        );
+
+
+        particle.userData.velocity =
+            new THREE.Vector3(
+                randomRange(
+                    -1.3,
+                    1.3
+                ),
+                randomRange(
+                    .5,
+                    1.8
+                ),
+                randomRange(
+                    -1.3,
+                    1.3
+                )
+            );
+
+
+        particle.userData.life =
+            randomRange(
+                .9,
+                1.7
+            );
+
+
+        particle.castShadow =
+            true;
+
+
+        scene.add(
+            particle
+        );
+
+
+        particles.push(
+            particle
+        );
+    }
+
+}
+
+
+// ============================================================
+// ОБНОВЛЕНИЕ ЧАСТИЦ
+// ============================================================
+
+function updateParticles(
+    delta
+) {
+
+    for (
+        let i =
+            particles.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const p =
+            particles[i];
+
+
+        p.userData.velocity.y +=
+            CONFIG.GRAVITY *
+            delta *
+            60;
+
+
+        p.position.addScaledVector(
+            p.userData.velocity,
+            delta * 60
+        );
+
+
+        p.rotation.x += .08;
+
+        p.rotation.y += .1;
+
+        p.rotation.z += .05;
+
+
+        if (
+            p.position.y < 0
+        ) {
+
+            p.position.y = 0;
+
+            p.userData.velocity.y *=
+                -.35;
+        }
+
+
+        p.userData.life -=
+            delta;
+
+
+        p.scale.multiplyScalar(
+            .985
+        );
+
+
+        if (
+            p.userData.life <= 0
+        ) {
+
+            scene.remove(
+                p
+            );
+
+            particles.splice(
+                i,
+                1
+            );
+        }
+    }
+
+}
+
+
+// ============================================================
+// ИГРОК
+// ============================================================
+
+const player =
+    new THREE.Group();
+
+
+player.position.set(
+    0,
+    CONFIG.PLAYER_HEIGHT,
+    CONFIG.PLAYER_Z
+);
+
+
+scene.add(
+    player
+);
+
+
+const playerBody =
+    new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+            .58,
+            1.35,
+            6,
+            10
+        ),
+        new THREE.MeshStandardMaterial({
+            color: 0x292929,
+            roughness: .65,
+            metalness: .25
+        })
+    );
+
+
+playerBody.castShadow =
+    true;
+
+
+player.add(
+    playerBody
+);
+
+
+const helmet =
+    new THREE.Mesh(
+        new THREE.SphereGeometry(
+            .7,
+            12,
+            8
+        ),
+        new THREE.MeshStandardMaterial({
+            color: 0x3c3c3c,
+            roughness: .4,
+            metalness: .65
+        })
+    );
+
+
+helmet.scale.y =
+    .72;
+
+
+helmet.position.y =
+    1;
+
+
+helmet.castShadow =
+    true;
+
+
+player.add(
+    helmet
+);
+
+
+const visor =
+    new THREE.Mesh(
+        new THREE.BoxGeometry(
+            .75,
+            .23,
+            .12
+        ),
+        new THREE.MeshStandardMaterial({
+            color: 0x111111,
+            emissive: 0x06120b,
+            emissiveIntensity: .8
+        })
+    );
+
+
+visor.position.set(
+    0,
+    1.02,
+    .64
+);
+
+
+player.add(
+    visor
+);
+
+
+// ============================================================
+// ЧАНКИ
+// ============================================================
+
+const chunks = [];
+
+let nextChunkZ = -20;
+
+let chunkNumber = 0;
+
+
+// ============================================================
+// ЧАНК — ДОРОГА
+// ============================================================
+
+function createRoadInChunk(
+    chunk
+) {
+
+    const road =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                CONFIG.ROAD_WIDTH,
+                .35,
+                CONFIG.CHUNK_LENGTH
+            ),
+            roadMaterial
+        );
+
+
+    road.position.y =
+        -.25;
+
+
+    road.receiveShadow =
+        true;
+
+
+    road.castShadow =
+        true;
+
+
+    chunk.add(
+        road
+    );
+
+
+    for (
+        let row = 0;
+        row < 12;
+        row++
+    ) {
+
+        for (
+            let lane = 0;
+            lane < 3;
+            lane++
+        ) {
+
+            const tile =
+                createTile(
+                    laneX(lane),
+                    -20 +
+                    row * 3.7
+                );
+
+
+            chunk.add(
+                tile
+            );
+        }
+    }
+
+
+    for (
+        const x of [-3,3]
+    ) {
+
+        for (
+            let i = 0;
+            i < 6;
+            i++
+        ) {
+
+            const crack =
+                createCrack(
+                    x +
+                    randomRange(
+                        -.15,
+                        .15
+                    ),
+                    -20 +
+                    i * 7
+                );
+
+
+            chunk.add(
+                crack
+            );
+        }
+    }
+
+}
+
+
+// ============================================================
+// КАМЕННЫЕ КРАЯ
+// ============================================================
+
+function createRoadEdges(
+    chunk
+) {
+
+    for (
+        const side of [-1,1]
+    ) {
+
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
+
+            const block =
+                new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        randomRange(
+                            1.5,
+                            2.8
+                        ),
+                        randomRange(
+                            .7,
+                            1.5
+                        ),
+                        randomRange(
+                            4,
+                            8
+                        )
+                    ),
+                    stoneMaterial
+                );
+
+
+            block.position.set(
+                side *
+                randomRange(
+                    9.5,
+                    11
+                ),
+                .4,
+                -20 +
+                i * 9
+            );
+
+
+            block.rotation.y =
+                randomRange(
+                    -.3,
+                    .3
+                );
+
+
+            block.castShadow =
+                true;
+
+
+            block.receiveShadow =
+                true;
+
+
+            chunk.add(
+                block
+            );
+        }
+    }
+
+}
+
+
+// ============================================================
+// РУИНЫ ЧАНКА
+// ============================================================
+
+function createRuinsInChunk(
+    chunk
+) {
+
+    const count =
+        2 +
+        Math.floor(
+            Math.random() * 5
+        );
+
+
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
+
+        const side =
+            randomSign();
+
+
+        const x =
+            side *
+            randomRange(
+                13,
+                25
+            );
+
+
+        const z =
+            randomRange(
+                -18,
+                18
+            );
+
+
+        const type =
+            Math.random();
+
+
+        let object;
+
+
+        if (
+            type < .45
+        ) {
+
+            object =
+                createColumn(
+                    x,
+                    z,
+                    randomRange(
+                        .65,
+                        1.5
+                    )
+                );
+
+        } else if (
+            type < .72
+        ) {
+
+            object =
+                createPyramid(
+                    x,
+                    z
+                );
+
+        } else {
+
+            object =
+                createStatue(
+                    x,
+                    z
+                );
+        }
+
+
+        chunk.add(
+            object
+        );
+
+
+        if (
+            Math.random() >
+            .55 &&
+            object.children.length > 1
+        ) {
+
+            const vine =
+                createVine(
+                    .8,
+                    randomRange(
+                        4,
+                        8
+                    )
+                );
+
+
+            object.add(
+                vine
+            );
+        }
+    }
+
+
+    if (
+        Math.random() >
+        .25
+    ) {
+
+        const plants =
+            createPlants(
+                randomSign() *
+                randomRange(
+                    12,
+                    23
+                ),
+                randomRange(
+                    -18,
+                    18
+                )
+            );
+
+
+        chunk.add(
+            plants
+        );
+    }
+
+}
+
+
+// ============================================================
+// ПРЕПЯТСТВИЯ ЧАНКА
+// ============================================================
+
+function createObstaclesInChunk(
+    chunk
+) {
+
+    if (
+        Math.random() < .2
+    ) {
+        return;
+    }
+
+
+    const amount =
+        Math.random() >
+        .65
+            ? 2
+            : 1;
+
+
+    for (
+        let i = 0;
+        i < amount;
+        i++
+    ) {
+
+        const lane =
+            randomLane();
+
+
+        let obstacle;
+
+
+        if (
+            Math.random() >
+            .5
+        ) {
+
+            obstacle =
+                createFallenColumn();
+
+        } else {
+
+            obstacle =
+                createChest();
+        }
+
+
+        obstacle.position.set(
+            laneX(lane),
+            0,
+            randomRange(
+                -17,
+                17
+            )
+        );
+
+
+        obstacle.userData.type =
+            "obstacle";
+
+
+        obstacle.userData.hit =
+            false;
+
+
+        chunk.add(
+            obstacle
+        );
+
+
+        obstacle.userData.chunk =
+            chunk;
+    }
+
+}
+
+
+// ============================================================
+// МОНЕТЫ ЧАНКА
+// ============================================================
+
+function createCoinsInChunk(
+    chunk
+) {
+
+    const pattern =
+        Math.floor(
+            Math.random() * 4
+        );
+
+
+    if (
+        pattern === 0
+    ) {
+
+        const lane =
+            randomLane();
+
+
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
+
+            const coin =
+                createCoin();
+
+
+            coin.position.set(
+                laneX(lane),
+                1.5,
+                -16 +
+                i * 7
+            );
+
+
+            chunk.add(
+                coin
+            );
+        }
+
+    } else if (
+        pattern === 1
+    ) {
+
+        for (
+            let i = 0;
+            i < 6;
+            i++
+        ) {
+
+            const coin =
+                createCoin();
+
+
+            coin.position.set(
+                laneX(
+                    i % 3
+                ),
+                1.5,
+                -17 +
+                i * 6
+            );
+
+
+            chunk.add(
+                coin
+            );
+        }
+
+    } else if (
+        pattern === 2
+    ) {
+
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
+
+            const coin =
+                createCoin();
+
+
+            coin.position.set(
+                0,
+                1.5,
+                -16 +
+                i * 7
+            );
+
+
+            chunk.add(
+                coin
+            );
+        }
+
+    } else {
+
+        for (
+            let i = 0;
+            i < 3;
+            i++
+        ) {
+
+            const coin =
+                createCoin();
+
+
+            coin.position.set(
+                laneX(i),
+                1.5,
+                randomRange(
+                    -12,
+                    12
+                )
+            );
+
+
+            chunk.add(
+                coin
+            );
+        }
+    }
+
+}
+
+
+// ============================================================
+// ФАКЕЛИ ЧАНКА
+// ============================================================
+
+function createTorchesInChunk(
+    chunk
+) {
+
+    if (
+        Math.random() < .25
+    ) {
+        return;
+    }
+
+
+    const torch =
+        createTorch();
+
+
+    torch.group.position.set(
+        randomSign() * 9,
+        0,
+        randomRange(
+            -18,
+            18
+        )
+    );
+
+
+    chunk.add(
+        torch.group
+    );
+
+
+    torch.group.userData.torch =
+        torch;
+}
+
+
+// ============================================================
+// СОЗДАНИЕ ПОЛНОГО ЧАНКА
+// ============================================================
+
+function createChunk(
+    z
+) {
+
+    const chunk =
+        new THREE.Group();
+
+
+    chunk.userData.index =
+        chunkNumber++;
+
+
+    chunk.userData.generatedZ =
+        z;
+
+
+    createRoadInChunk(
+        chunk
+    );
+
+
+    createRoadEdges(
+        chunk
+    );
+
+
+    createRuinsInChunk(
+        chunk
+    );
+
+
+    createObstaclesInChunk(
+        chunk
+    );
+
+
+    createCoinsInChunk(
+        chunk
+    );
+
+
+    createTorchesInChunk(
+        chunk
+    );
+
+
+    chunk.position.z =
+        z;
+
+
+    world.add(
+        chunk
+    );
+
+
+    chunks.push(
+        chunk
+    );
+
+
+    return chunk;
+
+}
+
+
+// ============================================================
+// ПЕРВОНАЧАЛЬНАЯ ГЕНЕРАЦИЯ
+// ============================================================
+
+function generateInitialWorld() {
+
+    for (
+        let i = 0;
+        i < CONFIG.INITIAL_CHUNKS;
+        i++
+    ) {
+
+        createChunk(
+            nextChunkZ
+        );
+
+
+        nextChunkZ -=
+            CONFIG.CHUNK_LENGTH;
+    }
+
+}
+
+
+generateInitialWorld();
+
+
+// ============================================================
+// ПОИСК ВСЕХ ИГРОВЫХ ОБЪЕКТОВ
+// ============================================================
+
+function getGameplayObjects() {
+
+    const result = [];
+
+    for (
+        const chunk of chunks
+    ) {
+
+        chunk.traverse(
+            object => {
+
+                if (
+                    object.userData.type ===
+                    "obstacle"
+                ) {
+
+                    result.push(
+                        object
+                    );
+                }
+            }
+        );
+    }
+
+    return result;
+
+}
+
+
+// ============================================================
+// ПОЛУЧЕНИЕ МИРОВОЙ ПОЗИЦИИ
+// ============================================================
+
+const tempVector =
+    new THREE.Vector3();
+
+
+function worldPosition(
+    object
+) {
+
+    object.getWorldPosition(
+        tempVector
+    );
+
+    return tempVector;
+
+}
+
+
+// ============================================================
+// КОЛЛИЗИИ
+// ============================================================
+
+function checkCollisions() {
+
+    if (
+        game.dead
+    ) {
+        return;
+    }
+
+
+    const playerPosition =
+        worldPosition(
+            player
+        );
+
+
+    const playerX =
+        playerPosition.x;
+
+
+    const playerY =
+        playerPosition.y;
+
+
+    const playerZ =
+        playerPosition.z;
+
+
+    for (
+        const chunk of chunks
+    ) {
+
+        for (
+            const object of
+            chunk.children
+        ) {
+
+            if (
+                object.userData.type !==
+                "obstacle"
+            ) {
+                continue;
+            }
+
+
+            if (
+                object.userData.hit
+            ) {
+                continue;
+            }
+
+
+            const position =
+                worldPosition(
+                    object
+                );
+
+
+            const dx =
+                Math.abs(
+                    playerX -
+                    position.x
+                );
+
+
+            const dy =
+                Math.abs(
+                    playerY -
+                    position.y
+                );
+
+
+            const dz =
+                Math.abs(
+                    playerZ -
+                    position.z
+                );
+
+
+            if (
+                dx < 1.7 &&
+                dy < 2.1 &&
+                dz < 1.8
+            ) {
+
+                object.userData.hit =
+                    true;
+
+
+                killPlayer();
+
+                return;
+            }
+        }
+    }
+
+}
+
+
+// ============================================================
+// СБОР МОНЕТ
+// ============================================================
+
+function checkCoins() {
+
+    if (
+        game.dead
+    ) {
+        return;
+    }
+
+
+    const playerPosition =
+        worldPosition(
+            player
+        );
+
+
+    for (
+        const chunk of chunks
+    ) {
+
+        for (
+            const object of
+            chunk.children
+        ) {
+
+            if (
+                object.userData.type !==
+                "coin"
+            ) {
+                continue;
+            }
+
+
+            if (
+                !object.visible
+            ) {
+                continue;
+            }
+
+
+            const position =
+                worldPosition(
+                    object
+                );
+
+
+            const dx =
+                Math.abs(
+                    playerPosition.x -
+                    position.x
+                );
+
+
+            const dy =
+                Math.abs(
+                    playerPosition.y -
+                    position.y
+                );
+
+
+            const dz =
+                Math.abs(
+                    playerPosition.z -
+                    position.z
+                );
+
+
+            if (
+                dx < 1.25 &&
+                dy < 1.7 &&
+                dz < 1.7
+            ) {
+
+                object.visible =
+                    false;
+
+
+                game.coins++;
+
+                updateUI();
+            }
+        }
+    }
+
+}
+
+
+// ============================================================
+// СМЕРТЬ ИГРОКА
+// ============================================================
+
+function killPlayer() {
+
+    if (
+        game.dead
+    ) {
+        return;
+    }
+
+
+    game.dead =
+        true;
+
+
+    game.started =
+        false;
+
+
+    createExplosion(
+        player.position.clone()
+    );
+
+
+    const flash =
+        document.getElementById(
+            "damageFlash"
+        );
+
+
+    flash.style.transition =
+        "opacity .08s";
+
+
+    flash.style.opacity =
+        "1";
+
+
+    player.rotation.z =
+        -0.8;
+
+
+    player.rotation.x =
+        0.3;
+
+
+    game.velocityY =
+        0.9;
+
+
+    setTimeout(
+        () => {
+
+            player.visible =
+                false;
+
+        },
+        180
+    );
+
+
+    setTimeout(
+        () => {
+
+            document.getElementById(
+                "finalCoins"
+            ).textContent =
+                game.coins;
+
+
+            document.getElementById(
+                "finalDistance"
+            ).textContent =
+                Math.floor(
+                    game.distance
+                );
+
+
+            document.getElementById(
+                "gameOverScreen"
+            ).style.display =
+                "flex";
+
+
+            flash.style.opacity =
+                "0";
+
+        },
+        650
+    );
+
+}
+
+
+// ============================================================
+// ДВИЖЕНИЕ ИГРОВОГО МИРА
+// ============================================================
+
+function moveWorld(
+    amount
+) {
+
+    world.position.z +=
+        amount;
+
+}
+
+
+// ============================================================
+// БЕСКОНЕЧНАЯ ГЕНЕРАЦИЯ
+// ============================================================
+
+function updateInfiniteChunks() {
+
+    const playerWorldZ =
+        player.position.z;
+
+
+    const furthestNeeded =
+        playerWorldZ -
+        CONFIG.GENERATION_DISTANCE;
+
+
+    while (
+        nextChunkZ >
+        furthestNeeded
+    ) {
+
+        createChunk(
+            nextChunkZ
+        );
+
+
+        nextChunkZ -=
+            CONFIG.CHUNK_LENGTH;
+    }
+
+}
+
+
+// ============================================================
+// УДАЛЕНИЕ СТАРЫХ ЧАНКОВ
+// ============================================================
+
+function removeOldChunks() {
+
+    for (
+        let i =
+            chunks.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const chunk =
+            chunks[i];
+
+
+        const position =
+            worldPosition(
+                chunk
+            );
+
+
+        if (
+            position.z >
+            CONFIG.DELETE_DISTANCE
+        ) {
+
+            world.remove(
+                chunk
+            );
+
+
+            chunks.splice(
+                i,
+                1
+            );
+        }
+    }
+
+}
+
+
+// ============================================================
+// ОБНОВЛЕНИЕ МОНЕТ
+// ============================================================
+
+function animateCoins(
+    delta
+) {
+
+    for (
+        const chunk of chunks
+    ) {
+
+        for (
+            const object of
+            chunk.children
+        ) {
+
+            if (
+                object.userData.type !==
+                "coin"
+            ) {
+                continue;
+            }
+
+
+            if (
+                !object.visible
+            ) {
+                continue;
+            }
+
+
+            object.rotation.y +=
+                delta * 5;
+
+
+            object.rotation.x +=
+                delta * .4;
+
+
+            object.position.y =
+                1.5 +
+                Math.sin(
+                    game.time * 4 +
+                    object.position.z
+                ) *
+                .15;
+        }
+    }
+
+}
+
+
+// ============================================================
+// ФАКЕЛЫ
+// ============================================================
+
+function animateTorches() {
+
+    for (
+        const chunk of chunks
+    ) {
+
+        chunk.traverse(
+            object => {
+
+                if (
+                    !object.userData.torch
+                ) {
+                    return;
+                }
+
+
+                const torch =
+                    object.userData.torch;
+
+
+                const time =
+                    game.time * 7;
+
+
+                torch.flame.scale.x =
+                    .65 +
+                    Math.sin(time) *
+                    .12;
+
+
+                torch.flame.scale.y =
+                    1.4 +
+                    Math.sin(
+                        time * 1.6
+                    ) *
+                    .18;
+
+
+                torch.light.intensity =
+                    3.4 +
+                    Math.sin(
+                        time * 2.1
+                    ) *
+                    .8;
+            }
+        );
+    }
+
+}
+
+
+// ============================================================
+// ДВИЖЕНИЕ ИГРОКА
+// ============================================================
+
+function updatePlayer(
+    delta
+) {
+
+    const targetX =
+        laneX(
+            game.lane
+        );
+
+
+    player.position.x +=
+        (
+            targetX -
+            player.position.x
+        ) *
+        Math.min(
+            1,
+            delta * 12
+        );
+
+
+    game.velocityY +=
+        CONFIG.GRAVITY *
+        delta *
+        60;
+
+
+    player.position.y +=
+        game.velocityY *
+        delta *
+        60;
+
+
+    if (
+        player.position.y <=
+        CONFIG.PLAYER_HEIGHT
+    ) {
+
+        player.position.y =
+            CONFIG.PLAYER_HEIGHT;
+
+
+        game.velocityY =
+            0;
+
+
+        game.grounded =
+            true;
+
+    } else {
+
+        game.grounded =
+            false;
+    }
+
+
+    const lean =
+        (
+            targetX -
+            player.position.x
+        ) * .05;
+
+
+    player.rotation.z +=
+        (
+            lean -
+            player.rotation.z
+        ) * .15;
+
+
+    if (
+        game.grounded &&
+        game.started
+    ) {
+
+        player.position.y =
+            CONFIG.PLAYER_HEIGHT +
+            Math.abs(
+                Math.sin(
+                    game.time * 13
+                )
+            ) *
+            .04;
+    }
+
+}
+
+
+// ============================================================
+// ПРЫЖОК
+// ============================================================
+
+function jump() {
+
+    if (
+        !game.started ||
+        game.paused ||
+        game.dead
+    ) {
+        return;
+    }
+
+
+    if (
+        game.grounded
+    ) {
+
+        game.velocityY =
+            CONFIG.JUMP_POWER;
+
+
+        game.grounded =
+            false;
+    }
+
+}
+
+
+// ============================================================
+// ПЕРЕМЕЩЕНИЕ
+// ============================================================
+
+function moveLeft() {
+
+    if (
+        !game.started ||
+        game.paused ||
+        game.dead
+    ) {
+        return;
+    }
+
+
+    game.lane =
+        Math.max(
+            0,
+            game.lane - 1
+        );
+
+}
+
+
+function moveRight() {
+
+    if (
+        !game.started ||
+        game.paused ||
+        game.dead
+    ) {
+        return;
+    }
+
+
+    game.lane =
+        Math.min(
+            2,
+            game.lane + 1
+        );
+
+}
+
+
+// ============================================================
+// УПРАВЛЕНИЕ КЛАВИАТУРОЙ
+// ============================================================
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "ArrowLeft" ||
+            event.key.toLowerCase() ===
+            "a"
+        ) {
+
+            moveLeft();
+        }
+
+
+        if (
+            event.key ===
+            "ArrowRight" ||
+            event.key.toLowerCase() ===
+            "d"
+        ) {
+
+            moveRight();
+        }
+
+
+        if (
+            event.code ===
+            "Space"
+        ) {
+
+            event.preventDefault();
+
+            jump();
+        }
+
+
+        if (
+            event.key ===
+            "Escape"
+        ) {
+
+            togglePause();
+        }
+
+    }
+);
+
+
+// ============================================================
+// МОБИЛЬНОЕ УПРАВЛЕНИЕ
+// ============================================================
+
+document
+    .getElementById(
+        "leftButton"
+    )
+    .addEventListener(
+        "pointerdown",
+        moveLeft
+    );
+
+
+document
+    .getElementById(
+        "rightButton"
+    )
+    .addEventListener(
+        "pointerdown",
+        moveRight
+    );
+
+
+document
+    .getElementById(
+        "jumpButton"
+    )
+    .addEventListener(
+        "pointerdown",
+        jump
+    );
+
+
+// ============================================================
+// СВАЙПЫ
+// ============================================================
+
+let touchStartX = 0;
+
+let touchStartY = 0;
+
+
+window.addEventListener(
+    "touchstart",
+    event => {
+
+        if (
+            event.touches.length !== 1
+        ) {
+            return;
+        }
+
+
+        touchStartX =
+            event.touches[0].clientX;
+
+
+        touchStartY =
+            event.touches[0].clientY;
+    },
+    {
+        passive: true
+    }
+);
+
+
+window.addEventListener(
+    "touchend",
+    event => {
+
+        if (
+            event.changedTouches.length !== 1
+        ) {
+            return;
+        }
+
+
+        const endX =
+            event.changedTouches[0].clientX;
+
+
+        const endY =
+            event.changedTouches[0].clientY;
+
+
+        const dx =
+            endX -
+            touchStartX;
+
+
+        const dy =
+            endY -
+            touchStartY;
+
+
+        if (
+            Math.abs(dx) >
+            Math.abs(dy)
+        ) {
+
+            if (
+                Math.abs(dx) > 35
+            ) {
+
+                if (
+                    dx < 0
+                ) {
+
+                    moveLeft();
+
+                } else {
+
+                    moveRight();
+                }
+            }
+
+        } else {
+
+            if (
+                dy < -35
+            ) {
+
+                jump();
+            }
+        }
+
+    },
+    {
+        passive: true
+    }
+);
+
+
+// ============================================================
+// ПАУЗА
+// ============================================================
+
+function togglePause() {
+
+    if (
+        !game.started ||
+        game.dead
+    ) {
+        return;
+    }
+
+
+    game.paused =
+        !game.paused;
+
+
+    document.getElementById(
+        "pauseScreen"
+    ).style.display =
+        game.paused
+            ? "flex"
+            : "none";
+
+}
+
+
+document
+    .getElementById(
+        "resumeButton"
+    )
+    .addEventListener(
+        "click",
+        togglePause
+    );
+
+
+// ============================================================
+// СТАРТ
+// ============================================================
+
+document
+    .getElementById(
+        "startButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            game.started =
+                true;
+
+            game.paused =
+                false;
+
+            game.dead =
+                false;
+
+            document.getElementById(
+                "startScreen"
+            ).style.display =
+                "none";
+
+        }
+    );
+
+
+// ============================================================
+// RESTART
+// ============================================================
+
+document
+    .getElementById(
+        "restartButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            location.reload();
+
+        }
+    );
+
+
+// ============================================================
+// UI
+// ============================================================
+
+function updateUI() {
+
+    document.getElementById(
+        "coinText"
+    ).textContent =
+        "🪙 " +
+        game.coins;
+
+
+    document.getElementById(
+        "distanceText"
+    ).textContent =
+        "📏 " +
+        Math.floor(
+            game.distance
+        ) +
+        " м";
+
+
+    document.getElementById(
+        "speedText"
+    ).textContent =
+        "⚡ " +
+        (
+            game.speed /
+            CONFIG.START_SPEED
+        ).toFixed(1);
+
+}
+
+
+// ============================================================
+// СКОРОСТЬ
+// ============================================================
+
+function updateSpeed(
+    delta
+) {
+
+    game.speed +=
+        CONFIG.SPEED_ACCELERATION *
+        delta *
+        60;
+
+
+    game.speed =
+        Math.min(
+            game.speed,
+            CONFIG.MAX_SPEED
+        );
+
+}
+
+
+// ============================================================
+// КАМЕРА
+// ============================================================
+
+function updateCamera(
+    delta
+) {
+
+    const targetX =
+        player.position.x *
+        .35;
+
+
+    camera.position.x +=
+        (
+            targetX -
+            camera.position.x
+        ) *
+        delta *
+        4;
+
+
+    const targetY =
+        6.5 +
+        (
+            player.position.y -
+            CONFIG.PLAYER_HEIGHT
+        ) *
+        .2;
+
+
+    camera.position.y +=
+        (
+            targetY -
+            camera.position.y
+        ) *
+        delta *
+        4;
+
+
+    camera.lookAt(
+        player.position.x * .15,
+        1.7,
+        -35
+    );
+
+}
+
+
+// ============================================================
+// ОСНОВНОЙ UPDATE
+// ============================================================
+
+function update(
+    delta
+) {
+
+    if (
+        !game.started ||
+        game.paused ||
+        game.dead
+    ) {
+        return;
+    }
+
+
+    game.time +=
+        delta;
+
+
+    game.distance +=
+        game.speed *
+        delta *
+        12;
+
+
+    updateSpeed(
+        delta
+    );
+
+
+    updatePlayer(
+        delta
+    );
+
+
+    moveWorld(
+        game.speed *
+        delta *
+        60
+    );
+
+
+    updateInfiniteChunks();
+
+
+    removeOldChunks();
+
+
+    animateCoins(
+        delta
+    );
+
+
+    animateTorches();
+
+
+    checkCoins();
+
+
+    checkCollisions();
+
+
+    updateCamera(
+        delta
+    );
+
+
+    updateUI();
+
+}
+
+
+// ============================================================
+// CLOCK
+// ============================================================
+
+const clock =
+    new THREE.Clock();
+
+
+// ============================================================
+// LOOP
+// ============================================================
+
+function animate() {
+
+    requestAnimationFrame(
+        animate
+    );
+
+
+    const delta =
+        Math.min(
+            clock.getDelta(),
+            .05
+        );
+
+
+    update(
+        delta
+    );
+
+
+    updateParticles(
+        delta
+    );
+
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+
+animate();
+
+
+// ============================================================
+// RESIZE
+// ============================================================
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        camera.aspect =
+            window.innerWidth /
+            window.innerHeight;
+
+
+        camera.updateProjectionMatrix();
+
+
+        renderer.setSize(
+            window.innerWidth,
+            window.innerHeight
+        );
+
+
+        renderer.setPixelRatio(
+            Math.min(
+                window.devicePixelRatio,
+                2
+            );
+
+    }
+);
+
+
+// ============================================================
+// ЗАЩИТА ОТ СКРОЛЛА
+// ============================================================
+
+window.addEventListener(
+    "wheel",
+    event => {
+
+        event.preventDefault();
+
+    },
+    {
+        passive: false
+    }
+);
+
+
+// ============================================================
+// НАЧАЛЬНЫЙ UI
+// ============================================================
+
+updateUI();
+
+
+console.log(
+    "Древние Руины запущены."
+);
+
+console.log(
+    "Бесконечная генерация чанков активна."
+);
+
+console.log(
+    "Столкновение с препятствием = смерть."
+);
+
+</script>
+
+</body>
+
+</html>
